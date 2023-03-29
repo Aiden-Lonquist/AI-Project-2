@@ -123,27 +123,17 @@ def probModel(data, dataTypes):
     # and P(spam|text_message) and selected the one with higher probability as the message class.
 
     for [label, text] in test.values:
-        # p_one_star = stars_prob_dist['one']
-        # p_two_star = stars_prob_dist['two']
-        # p_three_star = stars_prob_dist['three']
-        # p_four_star = stars_prob_dist['four']
-        # p_five_star = stars_prob_dist['five']
         p_one = 0
         p_two = 0
         p_three = 0
         p_four = 0
         p_five = 0
         for word in text.split():
-            # p_one += p_one_star * p_has_word_category[word, 1]
-            # p_two += p_two_star * p_has_word_category[word, 2]
-            # p_three += p_three_star * p_has_word_category[word, 3]
-            # p_four += p_four_star * p_has_word_category[word, 4]
-            # p_five += p_five_star * p_has_word_category[word, 5]
-            p_one += p_has_word_category[word, 1]
-            p_two += p_has_word_category[word, 2]
-            p_three += p_has_word_category[word, 3]
-            p_four += p_has_word_category[word, 4]
-            p_five += p_has_word_category[word, 5]
+            p_one *= p_has_word_category[word, 1]
+            p_two *= p_has_word_category[word, 2]
+            p_three *= p_has_word_category[word, 3]
+            p_four *= p_has_word_category[word, 4]
+            p_five *= p_has_word_category[word, 5]
 
         values = [p_one, p_two, p_three, p_four, p_five]
         print(values)

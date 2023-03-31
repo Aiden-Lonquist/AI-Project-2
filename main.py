@@ -61,6 +61,14 @@ def probModel(data):
     star_three_count = len(train[train['stars'] == 3.0])
     star_four_count = len(train[train['stars'] == 4.0])
     star_five_count = len(train[train['stars'] == 5.0])
+
+    # ugly print statements, sorry. These are for debugging the recall accuracy
+    print("Test Set, 1 star ratings:", len(test[test['stars'] == 1]))
+    print("Test Set, 2 star ratings:", len(test[test['stars'] == 2]))
+    print("Test Set, 3 star ratings:", len(test[test['stars'] == 3]))
+    print("Test Set, 4 star ratings:", len(test[test['stars'] == 4]))
+    print("Test Set, 5 star ratings:", len(test[test['stars'] == 5]))
+
     # print("Total counts and probabilities:")
     # print(f"1*: {star_one_count},\t 2*: {star_two_count},\t 3*: {star_three_count},\t 4*: {star_four_count},\t 5*: {star_five_count}")
 
@@ -226,16 +234,16 @@ def probModel(data):
     acc_four = (four_predicted_correct * 100 / total_four_predicted) if total_four_predicted != 0 else 0
     acc_five = (five_predicted_correct * 100 / total_five_predicted) if total_five_predicted != 0 else 0
 
-    rec_one = (one_predicted_correct * 100 / (one_predicted_correct + one_predicted_incorrect)) if (
-            one_predicted_correct + one_predicted_incorrect) != 0 else 0
-    rec_two = (two_predicted_correct * 100 / (two_predicted_correct + two_predicted_incorrect)) if (
-            two_predicted_correct + two_predicted_incorrect) != 0 else 0
-    rec_three = (three_predicted_correct * 100 / (three_predicted_correct + three_predicted_incorrect)) if (
-            three_predicted_correct + three_predicted_incorrect) != 0 else 0
-    rec_four = (four_predicted_correct * 100 / (four_predicted_correct + four_predicted_incorrect)) if (
-            four_predicted_correct + four_predicted_incorrect) != 0 else 0
-    rec_five = (five_predicted_correct * 100 / (five_predicted_correct + five_predicted_incorrect)) if (
-            five_predicted_correct + five_predicted_incorrect) != 0 else 0
+    rec_one = (one_predicted_correct * 100 / len(test[test['stars'] == 1])) if (
+            len(test[test['stars'] == 1])) != 0 else 0
+    rec_two = (two_predicted_correct * 100 / len(test[test['stars'] == 2])) if (
+            len(test[test['stars'] == 2])) != 0 else 0
+    rec_three = (three_predicted_correct * 100 / len(test[test['stars'] == 3])) if (
+            len(test[test['stars'] == 3])) != 0 else 0
+    rec_four = (four_predicted_correct * 100 / len(test[test['stars'] == 4])) if (
+            len(test[test['stars'] == 4])) != 0 else 0
+    rec_five = (five_predicted_correct * 100 / len(test[test['stars'] == 5])) if (
+            len(test[test['stars'] == 5])) != 0 else 0
 
     f1_one = (2 * acc_one * rec_one / (acc_one + rec_one)) if (acc_one + rec_one) != 0 else 0
     f1_two = (2 * acc_two * rec_two / (acc_two + rec_two)) if (acc_two + rec_two) != 0 else 0

@@ -1,2 +1,5 @@
 yelp_academic_dataset_review.json
 testData.csv
+venv/
+.idea/
+__pycache__

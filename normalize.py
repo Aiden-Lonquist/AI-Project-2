@@ -4,9 +4,6 @@ from spacy.lang.en.stop_words import STOP_WORDS
 nlp = spacy.load('en_core_web_sm')
 
 def normalize(text):
-    # Load the spacy model: nlp
-    nlp = spacy.load('en_core_web_sm')
-
     # Tokenize the article: doc
     doc = nlp(text)
 

@@ -21,8 +21,9 @@ def DoTheYoinkySploinky() -> pd.DataFrame:
         "funny": np.int32,
         "cool": np.int32,
     }
-    with open("testData.json", "r", encoding="utf-8") as file:
-        reader = pd.read_json(file, orient="records", lines=True, dtype=dataTypes, chunksize=32)
+
+    with open("yelp_academic_dataset_review.json", "r", encoding="utf-8") as file:
+        reader = pd.read_json(file, orient="records", lines=True, dtype=dataTypes, chunksize=1_000_000)
 
         # Filter/clean the data
         for chunk in reader:
@@ -60,17 +61,17 @@ def probModel(data):
     star_three_count = len(train[train['stars'] == 3.0])
     star_four_count = len(train[train['stars'] == 4.0])
     star_five_count = len(train[train['stars'] == 5.0])
-    print("Total counts and probabilities:")
-    print(f"1*: {star_one_count},\t 2*: {star_two_count},\t 3*: {star_three_count},\t 4*: {star_four_count},\t 5*: {star_five_count}")
+    # print("Total counts and probabilities:")
+    # print(f"1*: {star_one_count},\t 2*: {star_two_count},\t 3*: {star_three_count},\t 4*: {star_four_count},\t 5*: {star_five_count}")
 
     # Create a ProbDist object for the stars category
     p_cat = {"one": star_one_count, "two": star_two_count, "three": star_three_count, "four": star_four_count, "five": star_five_count}
     stars_prob_dist = ProbDist("stars", p_cat)
-    print(f"1*: {stars_prob_dist['one'].__round__(3)},"
-          f"\t 2*: {stars_prob_dist['two'].__round__(3)},"
-          f"\t 3*: {stars_prob_dist['three'].__round__(3)},"
-          f"\t 4*: {stars_prob_dist['four'].__round__(3)},"
-          f"\t 5*: {stars_prob_dist['five'].__round__(3)}")
+    # print(f"1*: {stars_prob_dist['one'].__round__(3)},"
+    #       f"\t 2*: {stars_prob_dist['two'].__round__(3)},"
+    #       f"\t 3*: {stars_prob_dist['three'].__round__(3)},"
+    #       f"\t 4*: {stars_prob_dist['four'].__round__(3)},"
+    #       f"\t 5*: {stars_prob_dist['five'].__round__(3)}")
 
 
     # Create p_word_has_stars as a JointProbDist and fill it in by iterating through train instances
@@ -82,10 +83,15 @@ def probModel(data):
     # iterate through the rows of pandas DataFrame using the function `iterrows`
     for index, row in train.iterrows():
         #print(row['text'], row['stars'])
-        # print(row['TEXT'].split())
-        for word in row['text'].split():
-            #print(word)
-            p_word_has_stars[word, row['stars']] += 1
+        #print(row['text'])
+        try:
+            for word in row['text'].split():
+                #print(word)
+                p_word_has_stars[word, row['stars']] += 1
+        except:
+            print(row)
+            print(row['text'])
+
 
     # # Add a smoothing factor of 1 to all counts
     # for c in p_word_has_stars.values('stars'):
@@ -145,53 +151,56 @@ def probModel(data):
         p_three = stars_prob_dist["three"]
         p_four = stars_prob_dist["four"]
         p_five = stars_prob_dist["five"]
-        for word in text.split():
-            if word not in p_word_has_stars.values('text'):
-                word = "not_in_training_set"
-            # else:
-            #     print(p_word_has_stars[word, 1], p_word_has_stars[word, 2], p_word_has_stars[word, 3], p_word_has_stars[word, 4], p_word_has_stars[word, 5])
-            p_one *= p_word_has_stars[word, 1]
-            p_two *= p_word_has_stars[word, 2]
-            p_three *= p_word_has_stars[word, 3]
-            p_four *= p_word_has_stars[word, 4]
-            p_five *= p_word_has_stars[word, 5]
-
-            print(word.ljust(20), "-",
-                  str(p_one.__round__(10)).ljust(12),
-                  str(p_two.__round__(10)).ljust(12),
-                  str(p_three.__round__(10)).ljust(12),
-                  str(p_four.__round__(10)).ljust(12),
-                  str(p_five.__round__(10)).ljust(12))
+        try:
+            for word in text.split():
+                if word not in p_word_has_stars.values('text'):
+                    word = "not_in_training_set"
+                # else:
+                #     print(p_word_has_stars[word, 1], p_word_has_stars[word, 2], p_word_has_stars[word, 3], p_word_has_stars[word, 4], p_word_has_stars[word, 5])
+                p_one *= p_word_has_stars[word, 1]
+                p_two *= p_word_has_stars[word, 2]
+                p_three *= p_word_has_stars[word, 3]
+                p_four *= p_word_has_stars[word, 4]
+                p_five *= p_word_has_stars[word, 5]
+                # print(word.ljust(20), "-",
+                #       str(p_one.__round__(10)).ljust(12),
+                #       str(p_two.__round__(10)).ljust(12),
+                #       str(p_three.__round__(10)).ljust(12),
+                #       str(p_four.__round__(10)).ljust(12),
+                #       str(p_five.__round__(10)).ljust(12))
+        except:
+            print(label)
+            print(text)
 
         values = [p_one, p_two, p_three, p_four, p_five]
         #print(values)
 
         if p_one == max(values):
-            if label == 'one':
+            if label == 1.0:
                 one_predicted_correct += 1
             else:
                 one_predicted_incorrect += 1
             total_one_predicted += 1
         elif p_two == max(values):
-            if label == 'two':
+            if label == 2.0:
                 two_predicted_correct += 1
             else:
                 two_predicted_incorrect += 1
             total_two_predicted += 1
         elif p_three == max(values):
-            if label == 'three':
+            if label == 3.0:
                 three_predicted_correct += 1
             else:
                 three_predicted_incorrect += 1
             total_three_predicted += 1
         elif p_four == max(values):
-            if label == 'four':
+            if label == 4.0:
                 four_predicted_correct += 1
             else:
                 four_predicted_incorrect += 1
             total_four_predicted += 1
         elif p_five == max(values):
-            if label == 'five':
+            if label == 5.0:
                 five_predicted_correct += 1
             else:
                 five_predicted_incorrect += 1
@@ -204,18 +213,19 @@ def probModel(data):
 
     print(f"One: {total_one_predicted}\nTwo: {total_two_predicted}\nThree: {total_three_predicted}\nFour: {total_four_predicted}\nFive: {total_five_predicted}\n")
 
-    print("confusion matrix\tprd_one\tprd_two\tprd_three\tprd_four\tprd_five\t"
-          "nact_one\tnact_two\tnact_three\tnact_four\tnact_five\t\t{}\t\t{}\n".format(
-        one_predicted_correct, two_predicted_correct, three_predicted_correct,
-        four_predicted_correct, five_predicted_correct, one_predicted_incorrect,
-        two_predicted_incorrect, three_predicted_incorrect, four_predicted_incorrect, five_predicted_incorrect
-    ))
+    # print("confusion matrix\tprd_one\tprd_two\tprd_three\tprd_four\tprd_five\t"
+    #       "nact_one\tnact_two\tnact_three\tnact_four\tnact_five\t\t{}\t\t{}\n".format(
+    #     one_predicted_correct, two_predicted_correct, three_predicted_correct,
+    #     four_predicted_correct, five_predicted_correct, one_predicted_incorrect,
+    #     two_predicted_incorrect, three_predicted_incorrect, four_predicted_incorrect, five_predicted_incorrect
+    # ))
 
     acc_one = (one_predicted_correct * 100 / total_one_predicted) if total_one_predicted != 0 else 0
     acc_two = (two_predicted_correct * 100 / total_two_predicted) if total_two_predicted != 0 else 0
-    acc_three = (five_predicted_correct * 100 / total_three_predicted) if total_three_predicted != 0 else 0
-    acc_four = (five_predicted_correct * 100 / total_four_predicted) if total_four_predicted != 0 else 0
+    acc_three = (three_predicted_correct * 100 / total_three_predicted) if total_three_predicted != 0 else 0
+    acc_four = (four_predicted_correct * 100 / total_four_predicted) if total_four_predicted != 0 else 0
     acc_five = (five_predicted_correct * 100 / total_five_predicted) if total_five_predicted != 0 else 0
+
     rec_one = (one_predicted_correct * 100 / (one_predicted_correct + one_predicted_incorrect)) if (
             one_predicted_correct + one_predicted_incorrect) != 0 else 0
     rec_two = (two_predicted_correct * 100 / (two_predicted_correct + two_predicted_incorrect)) if (
@@ -226,6 +236,7 @@ def probModel(data):
             four_predicted_correct + four_predicted_incorrect) != 0 else 0
     rec_five = (five_predicted_correct * 100 / (five_predicted_correct + five_predicted_incorrect)) if (
             five_predicted_correct + five_predicted_incorrect) != 0 else 0
+
     f1_one = (2 * acc_one * rec_one / (acc_one + rec_one)) if (acc_one + rec_one) != 0 else 0
     f1_two = (2 * acc_two * rec_two / (acc_two + rec_two)) if (acc_two + rec_two) != 0 else 0
     f1_three = (2 * acc_three * rec_three / (acc_three + rec_three)) if (acc_three + rec_three) != 0 else 0
@@ -256,5 +267,7 @@ if __name__ == "__main__":
         data = normalizeDataframe(data)
         # save the normalized data to a file
         data.to_csv('normalized_data.csv', index=False)
+
+    print("done normalizing")
 
     probModel(data)

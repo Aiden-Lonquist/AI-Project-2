@@ -7,10 +7,12 @@
 import pandas as pd
 import json
 import os
+import string
 from sklearn.model_selection import train_test_split
 import numpy as np
 from starter4 import *
 from normalize import *
+from rnn import *
 
 def DoTheYoinkySploinky() -> pd.DataFrame:
     # Read the data
@@ -69,8 +71,8 @@ def probModel(data):
     print("Test Set, 4 star ratings:", len(test[test['stars'] == 4]))
     print("Test Set, 5 star ratings:", len(test[test['stars'] == 5]))
 
-    # print("Total counts and probabilities:")
-    # print(f"1*: {star_one_count},\t 2*: {star_two_count},\t 3*: {star_three_count},\t 4*: {star_four_count},\t 5*: {star_five_count}")
+    print("Total counts and probabilities:")
+    print(f"1*: {star_one_count},\t 2*: {star_two_count},\t 3*: {star_three_count},\t 4*: {star_four_count},\t 5*: {star_five_count}")
 
     # Create a ProbDist object for the stars category
     p_cat = {"one": star_one_count, "two": star_two_count, "three": star_three_count, "four": star_four_count, "five": star_five_count}
@@ -89,9 +91,14 @@ def probModel(data):
     #print(p_word_has_stars['hi'])
 
     # iterate through the rows of pandas DataFrame using the function `iterrows`
+
+    training_progress = 0
     for index, row in train.iterrows():
         #print(row['text'], row['stars'])
         #print(row['text'])
+        training_progress += 1
+        if training_progress % 50000 == 0:
+            print("Training at row:", training_progress)
         try:
             for word in row['text'].split():
                 #print(word)
@@ -153,12 +160,26 @@ def probModel(data):
     # and P(spam|text_message) and selected the one with higher probability as the message class.
 
     # For each of the test instances, calculate the probability of each star rating given the text message
+
+    testing_progress = 0
     for [label, text] in test.values:
-        p_one = stars_prob_dist["one"]
-        p_two = stars_prob_dist["two"]
-        p_three = stars_prob_dist["three"]
-        p_four = stars_prob_dist["four"]
-        p_five = stars_prob_dist["five"]
+        # initializing p values based on amount of star ratings
+        # p_one = stars_prob_dist["one"]
+        # p_two = stars_prob_dist["two"]
+        # p_three = stars_prob_dist["three"]
+        # p_four = stars_prob_dist["four"]
+        # p_five = stars_prob_dist["five"]
+
+        # initializing weightless p values
+        p_one = 1
+        p_two = 1
+        p_three = 1
+        p_four = 1
+        p_five = 1
+
+        testing_progress += 1
+        if testing_progress % 50000 == 0:
+            print("Testing at row:", testing_progress)
         try:
             for word in text.split():
                 if word not in p_word_has_stars.values('text'):
@@ -257,6 +278,13 @@ def probModel(data):
     print("Prediction F1\t\tone = {:.3f}\ttwo = {:.3f}\tthree = {:.3f}\tfour = {:.3f}\tfive = {:.3f}"
           .format(f1_one, f1_two, f1_three, f1_four, f1_five))
 
+
+def RNNModel(data):
+    print("starting RNN")
+
+    RNNMain(data)
+
+
 def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
     # Pass each text field to the normalize function
     for index, row in data.iterrows():
@@ -278,4 +306,5 @@ if __name__ == "__main__":
 
     print("done normalizing")
 
-    probModel(data)
+    #probModel(data)
+    RNNModel(data)

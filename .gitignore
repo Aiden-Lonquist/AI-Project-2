@@ -3,3 +3,4 @@ testData.csv
 venv/
 .idea/
 __pycache__
+normalized_data.csv

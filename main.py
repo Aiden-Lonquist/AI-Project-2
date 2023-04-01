@@ -11,8 +11,9 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from starter4 import *
 from normalize import *
+import time
 
-def DoTheYoinkySploinky() -> pd.DataFrame:
+def DoTheYoinkySploinky(useFile: str="yelp_academic_dataset_review.json") -> pd.DataFrame:
     # Read the data
     data = []
     dataTypes = {
@@ -22,7 +23,7 @@ def DoTheYoinkySploinky() -> pd.DataFrame:
         "cool": np.int32,
     }
 
-    with open("yelp_academic_dataset_review.json", "r", encoding="utf-8") as file:
+    with open(useFile, "r", encoding="utf-8") as file:
         reader = pd.read_json(file, orient="records", lines=True, dtype=dataTypes, chunksize=1_000_000)
 
         # Filter/clean the data
@@ -68,6 +69,7 @@ def probModel(data):
     print("Test Set, 3 star ratings:", len(test[test['stars'] == 3]))
     print("Test Set, 4 star ratings:", len(test[test['stars'] == 4]))
     print("Test Set, 5 star ratings:", len(test[test['stars'] == 5]))
+    print()
 
     # print("Total counts and probabilities:")
     # print(f"1*: {star_one_count},\t 2*: {star_two_count},\t 3*: {star_three_count},\t 4*: {star_four_count},\t 5*: {star_five_count}")
@@ -75,18 +77,17 @@ def probModel(data):
     # Create a ProbDist object for the stars category
     p_cat = {"one": star_one_count, "two": star_two_count, "three": star_three_count, "four": star_four_count, "five": star_five_count}
     stars_prob_dist = ProbDist("stars", p_cat)
-    # print(f"1*: {stars_prob_dist['one'].__round__(3)},"
-    #       f"\t 2*: {stars_prob_dist['two'].__round__(3)},"
-    #       f"\t 3*: {stars_prob_dist['three'].__round__(3)},"
-    #       f"\t 4*: {stars_prob_dist['four'].__round__(3)},"
-    #       f"\t 5*: {stars_prob_dist['five'].__round__(3)}")
+    print(f"1*: {stars_prob_dist['one'].__round__(3)},"
+          f"\t 2*: {stars_prob_dist['two'].__round__(3)},"
+          f"\t 3*: {stars_prob_dist['three'].__round__(3)},"
+          f"\t 4*: {stars_prob_dist['four'].__round__(3)},"
+          f"\t 5*: {stars_prob_dist['five'].__round__(3)}")
 
 
     # Create p_word_has_stars as a JointProbDist and fill it in by iterating through train instances
-    # Dictionary containing the probability of a review having a certain star rating given that it contains a certain word
+    # Dictionary containing the probability of a word appearing in a review that has a certain star rating
+    # Indexing this at p_word_has_stars["word", 5.0] will give the probability of "word" appearing in a 5.0 review
     p_word_has_stars = JointProbDist(['text', 'stars'])
-
-    #print(p_word_has_stars['hi'])
 
     # iterate through the rows of pandas DataFrame using the function `iterrows`
     for index, row in train.iterrows():
@@ -99,12 +100,12 @@ def probModel(data):
         except:
             print(row)
             print(row['text'])
+            print("---------")
 
-
-    # # Add a smoothing factor of 1 to all counts
-    # for c in p_word_has_stars.values('stars'):
-    #     for w in p_word_has_stars.values('text'):
-    #         p_word_has_stars[w, c] += 1
+    # Add a smoothing factor of 1 to all counts
+    for word in p_word_has_stars.values('text'):
+        for category in p_word_has_stars.values('stars'):
+            p_word_has_stars[word, category] += 1
 
     # Add a case for when a word is not in the training set
     p_word_has_stars["not_in_training_set", 1] = 1
@@ -113,22 +114,24 @@ def probModel(data):
     p_word_has_stars["not_in_training_set", 4] = 1
     p_word_has_stars["not_in_training_set", 5] = 1
 
-    # # OLD NORMALIZATION FUNCTION, DOES NOT WORK I THINK
-    # for c in p_word_has_stars.values('stars'):
-    #     total = sum((p_word_has_stars[w, c] for w in p_word_has_stars.values('text')))
-    #     for w in p_word_has_stars.values('text'):
-    #         p_word_has_stars[w, c] /= total
+    # OLD NORMALIZATION FUNCTION, DOES NOT WORK I THINK
+    for c in p_word_has_stars.values('stars'):  # for each star rating (category):
+        total = sum(                            # total the number of words appearing in that category
+            (p_word_has_stars[w, c] for w in p_word_has_stars.values('text'))
+        )
+        # then divide everything by the total so that for each star rating, the probabilities of it having each word sums to 1
+        for w in p_word_has_stars.values('text'):
+            p_word_has_stars[w, c] /= total
 
-    # normalize the collected counts and turn them to probability distributions over each category
-    # i.e. for each word, the probabilities of the stars should sum to 1
-    for key in p_word_has_stars.values('text'):
-        total = p_word_has_stars[key, 1] + p_word_has_stars[key, 2] + p_word_has_stars[key, 3] + p_word_has_stars[key, 4] + p_word_has_stars[key, 5]
-        p_word_has_stars[key, 1] /= total
-        p_word_has_stars[key, 2] /= total
-        p_word_has_stars[key, 3] /= total
-        p_word_has_stars[key, 4] /= total
-        p_word_has_stars[key, 5] /= total
-        #print(p_word_has_stars[key, 1], p_word_has_stars[key, 2], p_word_has_stars[key, 3], p_word_has_stars[key, 4], p_word_has_stars[key, 5])
+    # # normalize the collected counts and turn them to probability distributions over each category
+    # # i.e. for each word, the probabilities of it being each star should sum to 1
+    # for word in p_word_has_stars.values('text'):
+    #     total = p_word_has_stars[word, 1] + p_word_has_stars[word, 2] + p_word_has_stars[word, 3] + p_word_has_stars[word, 4] + p_word_has_stars[word, 5]
+    #     p_word_has_stars[word, 1] /= total
+    #     p_word_has_stars[word, 2] /= total
+    #     p_word_has_stars[word, 3] /= total
+    #     p_word_has_stars[word, 4] /= total
+    #     p_word_has_stars[word, 5] /= total
 
     one_predicted_correct = 0
     one_predicted_incorrect = 0
@@ -179,6 +182,7 @@ def probModel(data):
         except:
             print(label)
             print(text)
+            print("---------")
 
         values = [p_one, p_two, p_three, p_four, p_five]
         #print(values)
@@ -219,7 +223,11 @@ def probModel(data):
     # (for each instace only one *predicted_as* variable will be updated and one *total_* variable depending on
     # the actual test message label.
 
-    print(f"One: {total_one_predicted}\nTwo: {total_two_predicted}\nThree: {total_three_predicted}\nFour: {total_four_predicted}\nFive: {total_five_predicted}\n")
+    print(f"Predicted One: {total_one_predicted}\n"
+          f"Predicted Two: {total_two_predicted}\n"
+          f"Predicted Three: {total_three_predicted}\n"
+          f"Predicted Four: {total_four_predicted}\n"
+          f"Predicted Five: {total_five_predicted}\n")
 
     # print("confusion matrix\tprd_one\tprd_two\tprd_three\tprd_four\tprd_five\t"
     #       "nact_one\tnact_two\tnact_three\tnact_four\tnact_five\t\t{}\t\t{}\n".format(
@@ -262,11 +270,12 @@ def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
     for index, row in data.iterrows():
         data.at[index, 'text'] = normalize(row['text'])
 
+    print("done normalizing")
     return data
 
 
 if __name__ == "__main__":
-
+    startTime = time.time()
 
     if os.path.exists('normalized_data.csv'):
         data = pd.read_csv('normalized_data.csv')
@@ -276,6 +285,8 @@ if __name__ == "__main__":
         # save the normalized data to a file
         data.to_csv('normalized_data.csv', index=False)
 
-    print("done normalizing")
+    #data = DoTheYoinkySploinky(useFile="testData.json")
 
     probModel(data)
+
+    print(time.time() - startTime)

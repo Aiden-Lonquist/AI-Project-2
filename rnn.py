@@ -12,7 +12,7 @@ import matplotlib.ticker as ticker
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-ALL_LETTERS = string.ascii_letters + " .,;'-"
+ALL_LETTERS = string.ascii_letters + "1234567890 .,;'-$é\n"
 N_LETTERS = len(ALL_LETTERS) + 1  # Plus EOS marker
 ALL_RATINGS = [1.0, 2.0, 3.0, 4.0, 5.0]
 criterion = nn.NLLLoss()
@@ -44,7 +44,12 @@ def RNNMain(data):
 
         for i in range(current_letter_tensor.size(0)):
             output, hidden = rnn(rating_tensor, current_letter_tensor[i], hidden)
-            l = criterion(output, next_letter_tensor[i])
+            try:
+                l = criterion(output, next_letter_tensor[i])
+            except:
+                print("Command executed:", next_letter_tensor[i])
+                print("i value that caused exception:", i, "Current Letter Tensor size:", next_letter_tensor.size(0))
+
             loss += l
 
         loss.backward()
@@ -114,7 +119,15 @@ def ratingTensor(rating):
 
 def nextLetterTensor(review):
     result = [ALL_LETTERS.find(review[letter_position]) for letter_position in range(1, len(review))]
+    # for letter_position in range(1, len(review)):
+    #     result = [ALL_LETTERS.find(review[letter_position])]
+    #     if ALL_LETTERS.find(review[letter_position]) == -1:
+    #         print("THIS CHARACTER BREAKS IT", review[letter_position], "<- THAT ONE RIGHT THERE. position:", letter_position, "review:", review)
+    #         print("Space index:", ALL_LETTERS.find(' '))
     result.append(N_LETTERS - 1) # EOS
+    for i in range(0, len(result)):
+        if result[i] == -1:
+            result[i] = 62
     return torch.LongTensor(result).to(device)
 
 

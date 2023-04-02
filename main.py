@@ -7,12 +7,15 @@
 import pandas as pd
 import json
 import os
+import string
 from sklearn.model_selection import train_test_split
 import numpy as np
 from starter4 import *
 from normalize import *
+from rnn import *
 import time
 from decimal import Decimal
+
 
 def DoTheYoinkySploinky(useFile: str="yelp_academic_dataset_review.json") -> pd.DataFrame:
     # Read the data
@@ -72,8 +75,8 @@ def probModel(data):
     print("Test Set, 5 star ratings:", len(test[test['stars'] == 5]))
     print()
 
-    # print("Total counts and probabilities:")
-    # print(f"1*: {star_one_count},\t 2*: {star_two_count},\t 3*: {star_three_count},\t 4*: {star_four_count},\t 5*: {star_five_count}")
+    print("Total counts and probabilities:")
+    print(f"1*: {star_one_count},\t 2*: {star_two_count},\t 3*: {star_three_count},\t 4*: {star_four_count},\t 5*: {star_five_count}")
 
     # Create a ProbDist object for the stars category
     p_cat = {"one": star_one_count, "two": star_two_count, "three": star_three_count, "four": star_four_count, "five": star_five_count}
@@ -91,9 +94,14 @@ def probModel(data):
     p_word_has_stars = JointProbDist(['text', 'stars'])
 
     # iterate through the rows of pandas DataFrame using the function `iterrows`
+
+    training_progress = 0
     for index, row in train.iterrows():
         #print(row['text'], row['stars'])
         #print(row['text'])
+        training_progress += 1
+        if training_progress % 50000 == 0:
+            print("Training at row:", training_progress)
         try:
             for word in row['text'].split():
                 #print(word)
@@ -115,7 +123,7 @@ def probModel(data):
     p_word_has_stars["not_in_training_set", 4] = 1
     p_word_has_stars["not_in_training_set", 5] = 1
 
-    # OLD NORMALIZATION FUNCTION, DOES NOT WORK I THINK
+    # OLD NORMALIZATION METHOD, APPARENTLY DOES WORK
     for c in p_word_has_stars.values('stars'):  # for each star rating (category):
         total = sum(                            # total the number of words appearing in that category
             (p_word_has_stars[w, c] for w in p_word_has_stars.values('text'))
@@ -124,6 +132,7 @@ def probModel(data):
         for w in p_word_has_stars.values('text'):
             p_word_has_stars[w, c] = Decimal(p_word_has_stars[w, c] / total)
 
+    # OTHER NORMALIZATION METHOD, APPARENTLY DOES NOT WORK
     # # normalize the collected counts and turn them to probability distributions over each category
     # # i.e. for each word, the probabilities of it being each star should sum to 1
     # for word in p_word_has_stars.values('text'):
@@ -157,12 +166,19 @@ def probModel(data):
     # and P(spam|text_message) and selected the one with higher probability as the message class.
 
     # For each of the test instances, calculate the probability of each star rating given the text message
+
+    testing_progress = 0
     for [label, text] in test.values:
+        testing_progress += 1
+        if testing_progress % 50000 == 0:
+            print("Testing at row:", testing_progress)
+
         p_one = Decimal(stars_prob_dist["one"])
         p_two = Decimal(stars_prob_dist["two"])
         p_three = Decimal(stars_prob_dist["three"])
         p_four = Decimal(stars_prob_dist["four"])
         p_five = Decimal(stars_prob_dist["five"])
+
         try:
             for word in text.split():
                 if word not in p_word_has_stars.values('text'):
@@ -267,6 +283,13 @@ def probModel(data):
           .format(f1_one, f1_two, f1_three, f1_four, f1_five))
     print(f"Average F1:\t\t{(f1_one+f1_two+f1_three+f1_four+f1_five)/5}")
 
+
+def RNNModel(data):
+    print("starting RNN")
+
+    RNNMain(data)
+
+
 def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
     # Pass each text field to the normalize function
     for index, row in data.iterrows():
@@ -289,6 +312,7 @@ if __name__ == "__main__":
 
     # data = DoTheYoinkySploinky(useFile="testData.json")
 
-    probModel(data)
+    #probModel(data)
+    RNNModel(data)
 
     print("\nFinished in",time.strftime("%H:%M:%S", time.gmtime(time.time() - startTime)))

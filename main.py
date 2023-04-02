@@ -12,6 +12,7 @@ import numpy as np
 from starter4 import *
 from normalize import *
 import time
+from decimal import Decimal
 
 def DoTheYoinkySploinky(useFile: str="yelp_academic_dataset_review.json") -> pd.DataFrame:
     # Read the data
@@ -121,7 +122,7 @@ def probModel(data):
         )
         # then divide everything by the total so that for each star rating, the probabilities of it having each word sums to 1
         for w in p_word_has_stars.values('text'):
-            p_word_has_stars[w, c] /= total
+            p_word_has_stars[w, c] = Decimal(p_word_has_stars[w, c] / total)
 
     # # normalize the collected counts and turn them to probability distributions over each category
     # # i.e. for each word, the probabilities of it being each star should sum to 1
@@ -157,11 +158,11 @@ def probModel(data):
 
     # For each of the test instances, calculate the probability of each star rating given the text message
     for [label, text] in test.values:
-        p_one = stars_prob_dist["one"]
-        p_two = stars_prob_dist["two"]
-        p_three = stars_prob_dist["three"]
-        p_four = stars_prob_dist["four"]
-        p_five = stars_prob_dist["five"]
+        p_one = Decimal(stars_prob_dist["one"])
+        p_two = Decimal(stars_prob_dist["two"])
+        p_three = Decimal(stars_prob_dist["three"])
+        p_four = Decimal(stars_prob_dist["four"])
+        p_five = Decimal(stars_prob_dist["five"])
         try:
             for word in text.split():
                 if word not in p_word_has_stars.values('text'):
@@ -264,6 +265,7 @@ def probModel(data):
           .format(rec_one, rec_two, rec_three, rec_four, rec_five))
     print("Prediction F1\t\tone = {:.3f}\ttwo = {:.3f}\tthree = {:.3f}\tfour = {:.3f}\tfive = {:.3f}"
           .format(f1_one, f1_two, f1_three, f1_four, f1_five))
+    print(f"Average F1:\t\t{(f1_one+f1_two+f1_three+f1_four+f1_five)/5}")
 
 def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
     # Pass each text field to the normalize function
@@ -285,8 +287,8 @@ if __name__ == "__main__":
         # save the normalized data to a file
         data.to_csv('normalized_data.csv', index=False)
 
-    #data = DoTheYoinkySploinky(useFile="testData.json")
+    # data = DoTheYoinkySploinky(useFile="testData.json")
 
     probModel(data)
 
-    print(time.time() - startTime)
+    print("\nFinished in",time.strftime("%H:%M:%S", time.gmtime(time.time() - startTime)))

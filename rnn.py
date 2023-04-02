@@ -21,7 +21,7 @@ criterion = nn.NLLLoss()
 def RNNMain(data):
     learning_rate = 0.0005
     hidden_layer_size = 128
-    n_iters = 100000
+    n_iters = 100_000
     print_every = 5000
     plot_every = 500
 

@@ -25,11 +25,13 @@ plot_every = 500
 
 
 def RNNMain(data):
-    # learning_rate = 0.0005
-    # hidden_layer_size = 128
-    # n_iters = 1000  # default 100000
-    # print_every = 5000
-    # plot_every = 500
+
+    learning_rate = 0.0005
+    hidden_layer_size = 128
+    n_iters = 100_000
+    print_every = 5000
+    plot_every = 500
+
 
     # rnn = RecurrentNeuralNetwork(N_LETTERS, hidden_layer_size, N_LETTERS)
 

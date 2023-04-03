@@ -1,10 +1,11 @@
+import statistics
+
 from starter4 import *
 from sklearn.model_selection import train_test_split
 from decimal import Decimal
 
-def probabilisticReasoning(data):
-
-    dropColumns = ["funny, cool, useful"]
+def probModelStars(data):
+    """Probabilistic model for predicting star ratings"""
     data.drop(columns=["funny", "cool", "useful"], inplace=True)
 
     train, test = train_test_split(
@@ -227,3 +228,89 @@ def probabilisticReasoning(data):
     print("Prediction F1\t\tone = {:.3f}\ttwo = {:.3f}\tthree = {:.3f}\tfour = {:.3f}\tfive = {:.3f}"
           .format(f1_one, f1_two, f1_three, f1_four, f1_five))
     print(f"Average F1:\t\t\t{(f1_one+f1_two+f1_three+f1_four+f1_five)/5}")
+
+def probModelEndorsements(data, target:str):
+    """Probabilistic model for predicting number of funny, cool, & useful endorsements"""
+    dropColumns = ["funny", "cool", "useful", "stars"]
+    dropColumns.remove(target)
+    data.drop(columns=dropColumns, inplace=True)
+    train, test = train_test_split(
+        data, test_size=0.2, random_state=42)
+
+    ### TRAINING THE MODEL ###
+    print("Training the model...")
+
+    endorsements_per_word = {}
+
+    for index, row in train.iterrows():
+        try:
+            for word in row["text"].split():
+                if word not in endorsements_per_word:
+                    endorsements_per_word[word] = []
+                endorsements_per_word[word].append(row[target])
+        except:
+            print("== Couldn't split text into words: ==")
+            print(row)
+            print("=====================================")
+
+    # print(endorsements_per_word)
+
+
+    ### TESTING THE MODEL ###
+    print("Testing the model...")
+
+    predicted_correct = 0
+    predicted_incorrect = 0
+    median_correct = 0
+    median_incorrect = 0
+    mode_correct = 0
+    mode_incorrect = 0
+
+    for index, row in test.iterrows():
+        # Predict the number of endorsements for this review
+        endorseCounts = []
+        try:
+            for word in row["text"].split():
+                if word in endorsements_per_word:
+                    endorseCounts += endorsements_per_word[word]
+        except:
+            print("== Couldn't split text into words: ==")
+            print(row)
+            print("=====================================")
+
+        # If none of the words in the review were in the training data, predict 0
+        if len(endorseCounts) == 0:
+            prediction = 0
+            prediction2 = 0
+            prediction3 = 0
+        else:
+            prediction = int(sum(endorseCounts) / len(endorseCounts))
+            prediction2 = int(statistics.median(endorseCounts))
+            prediction3 = int(statistics.mode(endorseCounts))
+
+        # Check if the prediction was correct
+        if prediction == row[target]:
+            predicted_correct += 1
+        else:
+            predicted_incorrect += 1
+
+        if prediction2 == row[target]:
+            median_correct += 1
+        else:
+            median_incorrect += 1
+
+        if prediction3 == row[target]:
+            mode_correct += 1
+        else:
+            mode_incorrect += 1
+
+    # Calculate the accuracy of the model
+    accuracy = (predicted_correct * 100 / (predicted_correct + predicted_incorrect))
+    median_accuracy = (median_correct * 100 / (median_correct + median_incorrect))
+    mode_accuracy = (mode_correct * 100 / (mode_correct + mode_incorrect))
+
+    # Print the results
+    print()
+    print(f"Mean Accuracy:\t\t{predicted_correct}/{len(test)}: {accuracy.__round__(5)}%")
+    print(f"Median Accuracy:\t{median_correct}/{len(test)}: {median_accuracy.__round__(5)}%")
+    print(f"Mode Accuracy:\t\t{mode_correct}/{len(test)}: {mode_accuracy.__round__(5)}%")

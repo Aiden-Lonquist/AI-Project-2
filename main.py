@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from starter4 import *
 from normalize import *
-from rnn import *
+from ffnn import *
 import time
 
 
@@ -288,10 +288,10 @@ def probModel(data):
           .format(f1_one, f1_two, f1_three, f1_four, f1_five))
 
 
-def RNNModel(data):
-    print("starting RNN")
+def FFNNModel(data):
+    print("starting FFNN")
 
-    RNNMain(data)
+    FFNNMain(data)
 
 
 def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
@@ -314,10 +314,10 @@ if __name__ == "__main__":
         # save the normalized data to a file
         data.to_csv('normalized_data.csv', index=False)
 
-    #data = DoTheYoinkySploinky(useFile="testData.json")
+    # data = DoTheYoinkySploinky(useFile="testData.json")
 
     #probModel(data)
-    RNNModel(data)
+    FFNNModel(data)
 
     print(time.time() - startTime)
 

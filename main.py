@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     # data = DoTheYoinkySploinky(useFile="testData.json")
 
-    #probModel(data)
+    #probModel(data, target="useful")
     FFNNModel(data)
 
     print("\nFinished in",time.strftime("%H:%M:%S", time.gmtime(time.time() - startTime)))

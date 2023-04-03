@@ -27,6 +27,14 @@ def FFNNMain(data):
     #     data['tokenized_text'][line] = simple_preprocess(line, deacc=True)
         #data.loc[line]['tokenized_text'] = simple_preprocess(line, deacc=True)
 
+    data_one = (data[data['stars'] == 1]).head(100)
+    data_two = (data[data['stars'] == 2]).head(100)
+    data_three = (data[data['stars'] == 3]).head(100)
+    data_four = (data[data['stars'] == 4]).head(100)
+    data_five = (data[data['stars'] == 5]).head(100)
+
+    data = pd.concat([data_one, data_two, data_three, data_four, data_five])
+
     tokenized_text = []
 
     for index, line in data.iterrows():
@@ -38,9 +46,9 @@ def FFNNMain(data):
 
     data['tokenized_text'] = tokenized_text
 
-    print(data)
+    #print(data)
 
-    print(data['tokenized_text'].head(5))
+    #print(data['tokenized_text'].head(5))
 
     # porter_stemmer = PorterStemmer()
     # # Get the stemmed_tokens
@@ -63,6 +71,7 @@ def FFNNMain(data):
     NUM_LABELS = 5
 
     input_dim = VOCAB_SIZE
+    print(VOCAB_SIZE)
     hidden_dim = 500
     output_dim = 5
     num_epochs = 100
@@ -82,7 +91,7 @@ def FFNNMain(data):
     iter = 0
 
     for epoch in range(num_epochs):
-        if (epoch + 1) % 25 == 0:
+        if (epoch + 1) % 1 == 0:
             print("Epoch completed: " + str(epoch + 1))
         train_loss = 0
         for index, row in train_X.iterrows():

@@ -7,7 +7,7 @@
 import pandas as pd
 import os
 from normalize import *
-from rnn import *
+from ffnn import *
 from probabilisticModel import *
 import time
 
@@ -57,10 +57,10 @@ def probModel(data, target: str="stars"):
         #TODO: check if target is a valid column
         probModelEndorsements(data, target)
 
-def RNNModel(data):
-    print("Starting RNN")
+def FFNNModel(data):
+    print("starting FFNN")
 
-    RNNMain(data)
+    FFNNMain(data)
 
 
 def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     # data = DoTheYoinkySploinky(useFile="testData.json")
 
-    probModel(data, target="useful")
-    # RNNModel(data)
+    #probModel(data)
+    FFNNModel(data)
 
     print("\nFinished in",time.strftime("%H:%M:%S", time.gmtime(time.time() - startTime)))

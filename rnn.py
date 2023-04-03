@@ -17,15 +17,23 @@ N_LETTERS = len(ALL_LETTERS) + 1  # Plus EOS marker
 ALL_RATINGS = [1.0, 2.0, 3.0, 4.0, 5.0]
 criterion = nn.NLLLoss()
 
+learning_rate = 0.0005
+hidden_layer_size = 128
+n_iters = 1000  # default 100000
+print_every = 5000
+plot_every = 500
+
 
 def RNNMain(data):
+
     learning_rate = 0.0005
     hidden_layer_size = 128
     n_iters = 100_000
     print_every = 5000
     plot_every = 500
 
-    rnn = RecurrentNeuralNetwork(N_LETTERS, hidden_layer_size, N_LETTERS)
+
+    # rnn = RecurrentNeuralNetwork(N_LETTERS, hidden_layer_size, N_LETTERS)
 
     all_losses = []
     total_loss = 0  # Reset every plot_every iters
@@ -69,7 +77,7 @@ def RNNMain(data):
     plt.figure()
     plt.plot(all_losses)
 
-    samples(1, 'abc')
+    samples(1, 'b')
 
     samples(2, 'def')
 
@@ -105,6 +113,8 @@ def timeSince(since):
 
 
 def currentLetterTensor(review):
+    if type(review) != str:
+        review = str(review)
     result = torch.zeros(len(review), 1, N_LETTERS).float()
     for letter_position in range(len(review)):
         result[letter_position][0][ALL_LETTERS.find(review[letter_position])] = 1
@@ -168,12 +178,12 @@ def sample(rating, start_letter='A', max_length = 200):
     with torch.no_grad():  # no need to track history in sampling
         rating_tensor = ratingTensor(rating)
         input = currentLetterTensor(start_letter)
-        hidden = RecurrentNeuralNetwork.initHidden()
+        hidden = rnn.initHidden()
 
         output_name = start_letter
 
         for i in range(max_length):
-            output, hidden = RecurrentNeuralNetwork(rating_tensor, input[0], hidden)
+            output, hidden = rnn(rating_tensor, input[0], hidden)
             topv, topi = output.topk(1)
             topi = topi[0][0]
             if topi == N_LETTERS - 1:
@@ -189,3 +199,6 @@ def sample(rating, start_letter='A', max_length = 200):
 def samples(rating, start_letters='ABC'):
     for start_letter in start_letters:
         print(sample(rating, start_letter))
+
+
+rnn = RecurrentNeuralNetwork(N_LETTERS, hidden_layer_size, N_LETTERS)

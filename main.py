@@ -48,10 +48,14 @@ def DoTheYoinkySploinky(useFile: str="yelp_academic_dataset_review.json") -> pd.
 
     return data
 
-def probModel(data):
-    print("Starting Probabilistic")
+def probModel(data, target: str="stars"):
+    print("Starting Probabilistic to predict", target)
 
-    probabilisticReasoning(data)
+    if target == "stars":
+        probModelStars(data)
+    else:
+        #TODO: check if target is a valid column
+        probModelEndorsements(data, target)
 
 def RNNModel(data):
     print("Starting RNN")
@@ -71,17 +75,17 @@ def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
 if __name__ == "__main__":
     startTime = time.time()
 
-    # if os.path.exists('normalized_data.csv'):
-    #     data = pd.read_csv('normalized_data.csv')
-    # else:
-    #     data = DoTheYoinkySploinky()
-    #     data = normalizeDataframe(data)
-    #     # save the normalized data to a file
-    #     data.to_csv('normalized_data.csv', index=False)
+    if os.path.exists('normalized_data.csv'):
+        data = pd.read_csv('normalized_data.csv')
+    else:
+        data = DoTheYoinkySploinky()
+        data = normalizeDataframe(data)
+        # save the normalized data to a file
+        data.to_csv('normalized_data.csv', index=False)
 
-    data = DoTheYoinkySploinky(useFile="testData.json")
+    # data = DoTheYoinkySploinky(useFile="testData.json")
 
-    probModel(data)
+    probModel(data, target="useful")
     # RNNModel(data)
 
     print("\nFinished in",time.strftime("%H:%M:%S", time.gmtime(time.time() - startTime)))

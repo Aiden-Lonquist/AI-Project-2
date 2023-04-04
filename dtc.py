@@ -1,4 +1,3 @@
-import numpy as np
 from sklearn import tree
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, f1_score, recall_score
@@ -32,7 +31,6 @@ def DTC(data, target:str):
 
     # Print the confusion matrix
     cm = confusion_matrix(testY, predicted_target)
-    # cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] # normalize each row to get accuracy
     # cm = cm.diagonal() / cm.sum(axis=1) # get accuracy for each class
     print("Confusion matrix:\n", cm)
 

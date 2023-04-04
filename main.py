@@ -7,8 +7,9 @@
 import pandas as pd
 import os
 from normalize import *
-from ffnn import *
 from probabilisticModel import *
+from ffnn import *
+from dtc import *
 import time
 
 
@@ -35,6 +36,8 @@ def DoTheYoinkySploinky(useFile: str="yelp_academic_dataset_review.json") -> pd.
             # )
 
             #print(chunk.loc[missing_rows, missing_cols])
+
+            # Remove the columns that are not considered in the prediction
             reducedChunk = chunk.drop(columns=["review_id", "user_id", "business_id", "date"])
 
             data.append(reducedChunk)
@@ -62,6 +65,11 @@ def FFNNModel(data):
 
     FFNNMain(data)
 
+def DTCModel(data, target: str="stars"):
+    print("Starting DTC to predict ", target)
+
+    DTC(data, target)
+
 
 def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
     # Pass each text field to the normalize function
@@ -86,6 +94,7 @@ if __name__ == "__main__":
     # data = DoTheYoinkySploinky(useFile="testData.json")
 
     #probModel(data, target="useful")
-    FFNNModel(data)
+    # FFNNModel(data)
+    DTCModel(data, target="stars")
 
     print("\nFinished in",time.strftime("%H:%M:%S", time.gmtime(time.time() - startTime)))

@@ -44,4 +44,4 @@ def DTC(data, target:str):
     # Print the recall
     print("Recall:", recall_score(testY, predicted_target, average='macro', zero_division=0))
     # Print the F1 score
-    print("F1 score:\n", f1_score(testY, predicted_target, average='macro', zero_division=0))
+    print("F1 score:", f1_score(testY, predicted_target, average='macro', zero_division=0))

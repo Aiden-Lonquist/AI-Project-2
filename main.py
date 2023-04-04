@@ -68,7 +68,7 @@ def FFNNModel(data):
 def DTCModel(data, target: str="stars"):
     print("Starting DTC to predict ", target)
 
-    DTC(data, target)
+    NaiveBayes(data, target)
 
 
 def normalizeDataframe(data: pd.DataFrame) -> pd.DataFrame:
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     # data = DoTheYoinkySploinky(useFile="testData.json")
 
-    #probModel(data, target="useful")
+    # probModel(data, target="useful")
     # FFNNModel(data)
     DTCModel(data, target="stars")
 

@@ -27,11 +27,11 @@ def FFNNMain(data):
     #     data['tokenized_text'][line] = simple_preprocess(line, deacc=True)
         #data.loc[line]['tokenized_text'] = simple_preprocess(line, deacc=True)
 
-    data_one = (data[data['stars'] == 1]).head(100)
-    data_two = (data[data['stars'] == 2]).head(100)
-    data_three = (data[data['stars'] == 3]).head(100)
-    data_four = (data[data['stars'] == 4]).head(100)
-    data_five = (data[data['stars'] == 5]).head(100)
+    data_one = (data[data['stars'] == 1]).head(375)
+    data_two = (data[data['stars'] == 2]).head(375)
+    data_three = (data[data['stars'] == 3]).head(375)
+    data_four = (data[data['stars'] == 4]).head(375)
+    data_five = (data[data['stars'] == 5]).head(1000)
 
     data = pd.concat([data_one, data_two, data_three, data_four, data_five])
 
